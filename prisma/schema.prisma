@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("USER") // USER | ADMIN
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  attempts  TestAttempt[]
+}
+
+model Subject {
+  id        String     @id @default(cuid())
+  name      String
+  nameHi    String
+  code      String     @unique
+  order     Int        @default(0)
+  color     String     @default("#3B82F6")
+  questions Question[]
+  topics    Topic[]
+}
+
+model Topic {
+  id        String     @id @default(cuid())
+  name      String
+  nameHi    String
+  subjectId String
+  subject   Subject    @relation(fields: [subjectId], references: [id])
+  questions Question[]
+}
+
+model Question {
+  id          String    @id @default(cuid())
+  textHi      String
+  textEn      String?
+  optionA     String
+  optionB     String
+  optionC     String
+  optionD     String
+  correct     String    // A B C D
+  explanation String
+  explanHi    String?
+  subjectId   String
+  subject     Subject   @relation(fields: [subjectId], references: [id])
+  topicId     String
+  topic       Topic     @relation(fields: [topicId], references: [id])
+  difficulty  String    @default("MEDIUM") // EASY MEDIUM HARD
+  source      String?
+  tags        String?
+  isActive    Boolean   @default(true)
+  needsReview Boolean   @default(false)
+  flagReason  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  testQuestions     TestQuestion[]
+  questionAttempts  QuestionAttempt[]
+}
+
+model MockTest {
+  id             String        @id @default(cuid())
+  title          String
+  titleHi        String
+  description    String?
+  type           String        @default("FULL") // FULL SUBJECT TOPIC PREVIOUS_YEAR CURRENT_AFFAIRS PRACTICE
+  totalQuestions Int
+  totalMarks     Int
+  duration       Int           // minutes
+  negativeMarks  Float         @default(0.0)
+  isPublished    Boolean       @default(false)
+  isActive       Boolean       @default(true)
+  order          Int           @default(0)
+  subjectId      String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  questions      TestQuestion[]
+  attempts       TestAttempt[]
+}
+
+model TestQuestion {
+  id         String   @id @default(cuid())
+  testId     String
+  test       MockTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id])
+  order      Int
+}
+
+model TestAttempt {
+  id           String            @id @default(cuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id])
+  testId       String
+  test         MockTest          @relation(fields: [testId], references: [id])
+  startedAt    DateTime          @default(now())
+  submittedAt  DateTime?
+  score        Float?
+  totalMarks   Int?
+  percentage   Float?
+  timeTaken    Int?
+  isCompleted  Boolean           @default(false)
+  answers      QuestionAttempt[]
+}
+
+model QuestionAttempt {
+  id             String      @id @default(cuid())
+  attemptId      String
+  attempt        TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId     String
+  question       Question    @relation(fields: [questionId], references: [id])
+  selectedOption String?
+  isCorrect      Boolean?
+  isMarked       Boolean     @default(false)
+  timeTaken      Int?
+}
