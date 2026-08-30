@@ -48,6 +48,11 @@ next-env.d.ts
 *.db-wal
 *.db-shm
 
+# tool-generated skill/agent files
+.agents/
+.windsurf/
+skills-lock.json
+
 # env
 .env
 .env.local

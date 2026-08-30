@@ -1,9 +1,10 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaLibSql } from '@prisma/adapter-libsql'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
 import bcrypt from 'bcryptjs'
 
-const adapter = new PrismaLibSql({ url: 'file:///Users/anilkumar/Documents/work/test-papers/dev.db' })
-const prisma = new PrismaClient({ adapter } as any)
+const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+const prisma = new PrismaClient({ adapter: new PrismaPg(pool) as any } as any)
 
 async function main() {
   console.log('🌱 Seeding MP Patwari 2026 database...')
