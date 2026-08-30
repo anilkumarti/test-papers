@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { supabase, mapQuestion } from '@/lib/supabase'
 import { getSession } from '@/lib/auth'
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -8,18 +8,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!session || session.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     const { id } = await params
     const data = await req.json()
-    const q = await prisma.question.update({
-      where: { id },
-      data: {
-        textHi: data.textHi, textEn: data.textEn || null,
-        optionA: data.optionA, optionB: data.optionB, optionC: data.optionC, optionD: data.optionD,
-        correct: data.correct, explanation: data.explanation, explanHi: data.explanHi || null,
-        subjectId: data.subjectId, topicId: data.topicId,
-        difficulty: data.difficulty, source: data.source || null,
-        tags: data.tags || null, isActive: data.isActive, needsReview: data.needsReview,
-      }
-    })
-    return NextResponse.json({ question: q })
+    const { data: row, error } = await supabase.from('questions').update({
+      text_hi: data.textHi, text_en: data.textEn || null,
+      option_a: data.optionA, option_b: data.optionB, option_c: data.optionC, option_d: data.optionD,
+      correct: data.correct, explanation: data.explanation, explan_hi: data.explanHi || null,
+      subject_id: data.subjectId, topic_id: data.topicId,
+      difficulty: data.difficulty, source: data.source || null, tags: data.tags || null,
+      is_active: data.isActive, needs_review: data.needsReview,
+    }).eq('id', id).select().single()
+    if (error) throw error
+    return NextResponse.json({ question: mapQuestion(row) })
   } catch (e) {
     console.error(e)
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
@@ -31,7 +29,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     const session = await getSession()
     if (!session || session.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     const { id } = await params
-    await prisma.question.delete({ where: { id } })
+    const { error } = await supabase.from('questions').delete().eq('id', id)
+    if (error) throw error
     return NextResponse.json({ success: true })
   } catch (e) {
     console.error(e)

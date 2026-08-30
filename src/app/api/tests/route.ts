@@ -1,28 +1,29 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { supabase, mapTest } from '@/lib/supabase'
 import { getSession } from '@/lib/auth'
 
 export async function GET() {
   try {
     const session = await getSession()
-    const tests = await prisma.mockTest.findMany({
-      where: { isPublished: true, isActive: true },
-      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
-      select: {
-        id: true, title: true, titleHi: true, description: true,
-        type: true, totalQuestions: true, totalMarks: true,
-        duration: true, negativeMarks: true, order: true,
-        _count: { select: { attempts: true } }
-      }
-    })
+    const { data: rows } = await supabase
+      .from('mock_tests')
+      .select('*, test_attempts(id)')
+      .eq('is_published', true)
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false })
+
+    const tests = rows?.map((t: any) => {
+      const { test_attempts, ...rest } = t
+      return { ...mapTest(rest), _count: { attempts: test_attempts?.length ?? 0 } }
+    }) ?? []
 
     let userAttempts: Record<string, boolean> = {}
     if (session) {
-      const attempts = await prisma.testAttempt.findMany({
-        where: { userId: session.userId, isCompleted: true },
-        select: { testId: true }
-      })
-      attempts.forEach(a => { userAttempts[a.testId] = true })
+      const { data: attempts } = await supabase
+        .from('test_attempts').select('test_id')
+        .eq('user_id', session.userId).eq('is_completed', true)
+      attempts?.forEach((a: any) => { userAttempts[a.test_id] = true })
     }
 
     return NextResponse.json({ tests, userAttempts })

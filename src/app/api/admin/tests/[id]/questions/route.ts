@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { supabase, mapTestQuestion } from '@/lib/supabase'
 import { getSession } from '@/lib/auth'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -7,41 +7,31 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const session = await getSession()
     if (!session || session.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     const { id } = await params
-    const tqs = await prisma.testQuestion.findMany({
-      where: { testId: id },
-      include: { question: { include: { subject: true, topic: true } } },
-      orderBy: { order: 'asc' }
-    })
-    return NextResponse.json({ questions: tqs })
+    const { data: rows } = await supabase
+      .from('test_questions').select('*, questions(*, subjects(*), topics(*))')
+      .eq('test_id', id).order('sort_order', { ascending: true })
+    return NextResponse.json({ questions: (rows ?? []).map(mapTestQuestion) })
   } catch (e) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }
 
-// Generate test from subject distribution
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
     if (!session || session.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     const { id } = await params
     const { subjectDistribution } = await req.json()
-    // subjectDistribution: [{ subjectId, count }]
 
-    // Clear existing
-    await prisma.testQuestion.deleteMany({ where: { testId: id } })
+    await supabase.from('test_questions').delete().eq('test_id', id)
 
     let order = 0
     for (const dist of subjectDistribution) {
-      const questions = await prisma.question.findMany({
-        where: { subjectId: dist.subjectId, isActive: true },
-        take: dist.count,
-        orderBy: { createdAt: 'asc' }
-      })
-      for (const q of questions) {
-        await prisma.testQuestion.create({
-          data: { testId: id, questionId: q.id, order: order++ }
-        })
-      }
+      const { data: questions } = await supabase.from('questions')
+        .select('id').eq('subject_id', dist.subjectId).eq('is_active', true)
+        .order('created_at', { ascending: true }).limit(dist.count)
+      const rows = (questions ?? []).map(q => ({ test_id: id, question_id: q.id, sort_order: order++ }))
+      if (rows.length > 0) await supabase.from('test_questions').insert(rows)
     }
     return NextResponse.json({ success: true, total: order })
   } catch (e) {

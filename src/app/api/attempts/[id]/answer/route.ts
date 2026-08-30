@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { supabase, mapQA } from '@/lib/supabase'
 import { getSession } from '@/lib/auth'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -9,32 +9,28 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { id } = await params
     const { questionId, selectedOption, isMarked, timeTaken } = await req.json()
 
-    const attempt = await prisma.testAttempt.findFirst({
-      where: { id, userId: session.userId, isCompleted: false }
-    })
+    const { data: attempt } = await supabase
+      .from('test_attempts').select('id')
+      .eq('id', id).eq('user_id', session.userId).eq('is_completed', false)
+      .maybeSingle()
     if (!attempt) return NextResponse.json({ error: 'प्रयास नहीं मिला' }, { status: 404 })
 
-    const qa = await prisma.questionAttempt.findFirst({
-      where: { attemptId: id, questionId },
-      include: { question: true }
-    })
+    const { data: qa } = await supabase
+      .from('question_attempts').select('*, questions(correct, is_marked)')
+      .eq('attempt_id', id).eq('question_id', questionId)
+      .maybeSingle()
     if (!qa) return NextResponse.json({ error: 'प्रश्न नहीं मिला' }, { status: 404 })
 
-    const isCorrect = selectedOption
-      ? selectedOption === qa.question.correct
-      : null
+    const isCorrect = selectedOption ? selectedOption === qa.questions.correct : null
 
-    const updated = await prisma.questionAttempt.update({
-      where: { id: qa.id },
-      data: {
-        selectedOption: selectedOption ?? null,
-        isCorrect: isCorrect,
-        isMarked: isMarked !== undefined ? isMarked : qa.isMarked,
-        timeTaken: timeTaken ?? qa.timeTaken,
-      }
-    })
+    const { data: updated } = await supabase.from('question_attempts').update({
+      selected_option: selectedOption ?? null,
+      is_correct: isCorrect,
+      is_marked: isMarked !== undefined ? isMarked : qa.is_marked,
+      time_taken: timeTaken ?? qa.time_taken,
+    }).eq('id', qa.id).select().single()
 
-    return NextResponse.json({ questionAttempt: updated })
+    return NextResponse.json({ questionAttempt: mapQA(updated) })
   } catch (e) {
     console.error(e)
     return NextResponse.json({ error: 'सर्वर त्रुटि' }, { status: 500 })
