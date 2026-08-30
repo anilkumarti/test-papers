@@ -24,7 +24,7 @@ export default function ResultsPage() {
     difficultyStats: { EASY: DiffStat; MEDIUM: DiffStat; HARD: DiffStat }
     weakAreas: (TopicStat & { accuracy: number })[]
   } | null>(null)
-  const [tab, setTab] = useState<'overview' | 'time' | 'review'>('overview')
+  const [tab, setTab] = useState<'overview' | 'time' | 'review'>('review')
   const [reviewFilter, setReviewFilter] = useState<'all' | 'correct' | 'wrong' | 'unattempted'>('all')
   const [loading, setLoading] = useState(true)
 
@@ -100,7 +100,7 @@ export default function ResultsPage() {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6 flex-wrap">
-          {([['overview', '📊 विश्लेषण'], ['time', '⏱ समय'], ['review', '📝 प्रश्न समीक्षा']] as const).map(([t, label]) => (
+          {([['review', '📝 उत्तर देखें'], ['overview', '📊 विश्लेषण'], ['time', '⏱ समय']] as const).map(([t, label]) => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-5 py-2 rounded-full font-semibold text-sm ${tab === t ? 'bg-blue-700 text-white' : 'bg-white text-slate-600 border border-slate-300'}`}>
               {label}
