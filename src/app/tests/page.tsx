@@ -11,6 +11,19 @@ interface Test {
   _count: { attempts: number }
 }
 
+function ScoreBadge({ pct, score, total }: { pct: number; score: number; total: number }) {
+  const color = pct >= 60 ? { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' }
+    : pct >= 40 ? { bg: '#fffbeb', text: '#b45309', border: '#fde68a' }
+    : { bg: '#fef2f2', text: '#b91c1c', border: '#fecaca' }
+  return (
+    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
+      style={{ background: color.bg, color: color.text, border: `1px solid ${color.border}` }}>
+      <span>{pct}%</span>
+      <span className="opacity-60">({score}/{total})</span>
+    </div>
+  )
+}
+
 const typeLabels: Record<string, { label: string; color: string }> = {
   FULL: { label: 'फुल मॉक टेस्ट', color: 'bg-blue-100 text-blue-800' },
   SUBJECT: { label: 'विषयवार टेस्ट', color: 'bg-purple-100 text-purple-800' },
@@ -23,7 +36,7 @@ const typeLabels: Record<string, { label: string; color: string }> = {
 export default function TestsPage() {
   const [tests, setTests] = useState<Test[]>([])
   const [subjects, setSubjects] = useState<Subject[]>([])
-  const [userAttempts, setUserAttempts] = useState<Record<string, { completed: boolean; lastId: string }>>({})
+  const [userAttempts, setUserAttempts] = useState<Record<string, { completed: boolean; lastId: string; percentage: number; score: number; totalMarks: number }>>({})
   const [filter, setFilter] = useState('ALL')
   const [loading, setLoading] = useState(true)
 
@@ -116,7 +129,7 @@ export default function TestsPage() {
                             style={{ background: subject.color + '20', color: subject.color }}>
                             पेपर {idx + 1}
                           </span>
-                          {attempt && <span className="badge bg-green-100 text-green-700 text-xs">✓ दिया</span>}
+                          {attempt && <ScoreBadge pct={attempt.percentage} score={attempt.score} total={attempt.totalMarks} />}
                         </div>
                         <h3 className="font-bold text-slate-800 text-base mb-1 leading-snug">{test.titleHi}</h3>
                         <div className="grid grid-cols-3 gap-2 mb-4 mt-2 bg-slate-50 rounded-lg p-3 text-xs text-slate-600">
@@ -151,7 +164,7 @@ export default function TestsPage() {
                 <div key={test.id} className="card hover:shadow-md transition-all flex flex-col">
                   <div className="flex items-start justify-between mb-3">
                     <span className={`badge text-xs ${tl.color}`}>{tl.label}</span>
-                    {attempt && <span className="badge bg-green-100 text-green-700 text-xs">✓ दिया</span>}
+                    {attempt && <ScoreBadge pct={attempt.percentage} score={attempt.score} total={attempt.totalMarks} />}
                   </div>
                   <h3 className="font-bold text-slate-800 text-base mb-1 leading-snug">{test.titleHi}</h3>
                   {test.description && <p className="text-slate-500 text-sm mb-4 flex-1">{test.description}</p>}

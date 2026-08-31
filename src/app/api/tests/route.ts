@@ -24,15 +24,20 @@ export async function GET() {
       return (a.order ?? 99) - (b.order ?? 99)
     })
 
-    let userAttempts: Record<string, { completed: boolean; lastId: string }> = {}
+    let userAttempts: Record<string, { completed: boolean; lastId: string; percentage: number; score: number; totalMarks: number }> = {}
     if (session) {
       const { data: attempts } = await supabase
-        .from('test_attempts').select('id, test_id, created_at')
+        .from('test_attempts').select('id, test_id, score, total_marks, percentage, created_at')
         .eq('user_id', session.userId).eq('is_completed', true)
         .order('created_at', { ascending: false })
       attempts?.forEach((a: any) => {
         if (!userAttempts[a.test_id]) {
-          userAttempts[a.test_id] = { completed: true, lastId: a.id }
+          userAttempts[a.test_id] = {
+            completed: true, lastId: a.id,
+            percentage: Math.round(a.percentage ?? 0),
+            score: a.score ?? 0,
+            totalMarks: a.total_marks ?? 0,
+          }
         }
       })
     }
