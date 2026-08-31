@@ -2,12 +2,14 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
+import FormulaPanel from './FormulaPanel'
 
 interface User { name: string; email: string; role: string }
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [formulaOpen, setFormulaOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -23,6 +25,7 @@ export default function Navbar() {
   }
 
   return (
+    <>
     <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
@@ -42,6 +45,17 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Formula button */}
+            <button
+              onClick={() => setFormulaOpen(true)}
+              className="flex items-center gap-1.5 text-sm font-semibold px-3 py-2 rounded-lg transition-colors"
+              style={{ background: '#eff6ff', color: '#1d4ed8' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#dbeafe' }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#eff6ff' }}>
+              <span>📚</span>
+              <span className="hidden sm:inline">फॉर्मूला</span>
+            </button>
+
             {user ? (
               <div className="relative">
                 <button onClick={() => setMenuOpen(!menuOpen)} className="flex items-center gap-2 bg-blue-50 text-blue-800 px-3 py-2 rounded-lg font-medium text-sm hover:bg-blue-100 transition-colors">
@@ -73,5 +87,8 @@ export default function Navbar() {
         </div>
       </div>
     </nav>
+
+    <FormulaPanel open={formulaOpen} onClose={() => setFormulaOpen(false)} />
+    </>
   )
 }
