@@ -26,14 +26,17 @@ export async function GET() {
 
     let userAttempts: Record<string, { completed: boolean; lastId: string; percentage: number; score: number; totalMarks: number }> = {}
     if (session) {
+      // Fetch all attempts; completed ones sorted first so they take priority per test
       const { data: attempts } = await supabase
-        .from('test_attempts').select('id, test_id, score, total_marks, percentage, created_at')
-        .eq('user_id', session.userId).eq('is_completed', true)
+        .from('test_attempts')
+        .select('id, test_id, score, total_marks, percentage, created_at, is_completed')
+        .eq('user_id', session.userId)
+        .order('is_completed', { ascending: false })
         .order('created_at', { ascending: false })
       attempts?.forEach((a: any) => {
         if (!userAttempts[a.test_id]) {
           userAttempts[a.test_id] = {
-            completed: true, lastId: a.id,
+            completed: !!a.is_completed, lastId: a.id,
             percentage: Math.round(a.percentage ?? 0),
             score: a.score ?? 0,
             totalMarks: a.total_marks ?? 0,

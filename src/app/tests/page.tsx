@@ -230,7 +230,15 @@ function TestCard({
               पेपर {idx + 1}
             </span>
           ) : null}
-          {attempt && <ScoreBadge pct={attempt.percentage} score={attempt.score} total={attempt.totalMarks} />}
+          {attempt?.completed
+            ? <ScoreBadge pct={attempt.percentage} score={attempt.score} total={attempt.totalMarks} />
+            : attempt
+            ? <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
+                style={{ background: '#fefce8', color: '#a16207', border: '1px solid #fde68a' }}>
+                ⏳ जारी है...
+              </span>
+            : null
+          }
         </div>
 
         {/* Title */}
@@ -270,9 +278,9 @@ function TestCard({
             style={{ background: accentColor, boxShadow: `0 4px 12px ${accentColor}40` }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.9' }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}>
-            {done ? '🔄 फिर दें' : '▶ शुरू करें'}
+            {done ? '🔄 फिर दें' : attempt ? '▶ जारी रखें' : '▶ शुरू करें'}
           </Link>
-          {attempt && (
+          {attempt?.completed && (
             <Link href={`/results/${attempt.lastId}`}
               className="flex items-center justify-center gap-1 px-3 py-2.5 rounded-xl text-sm font-bold transition-all"
               style={{ background: '#f8faff', color: '#475569', border: '1.5px solid #e4e9f2' }}
