@@ -15,10 +15,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       .maybeSingle()
     if (!attempt) return NextResponse.json({ error: 'प्रयास नहीं मिला' }, { status: 404 })
 
-    const { data: qa } = await supabase
-      .from('question_attempts').select('*, questions(correct, is_marked)')
+    const { data: qa, error: qaError } = await supabase
+      .from('question_attempts').select('*, questions(correct)')
       .eq('attempt_id', id).eq('question_id', questionId)
       .maybeSingle()
+    if (qaError) { console.error('question_attempts lookup error:', qaError.message); return NextResponse.json({ error: 'DB त्रुटि' }, { status: 500 }) }
     if (!qa) return NextResponse.json({ error: 'प्रश्न नहीं मिला' }, { status: 404 })
 
     const isCorrect = selectedOption ? selectedOption === qa.questions.correct : null
