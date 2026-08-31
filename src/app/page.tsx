@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
+import FooterStats from '@/components/FooterStats'
 
 const examPattern = [
   { subject: 'सामान्य ज्ञान एवं MP GK', hi: 'Samanya Gyan', questions: 25, marks: 25, color: '#3b82f6' },
@@ -168,6 +169,7 @@ export default function HomePage() {
           <div className="font-bold text-white text-lg mb-2">MP Patwari Mock Test 2026</div>
           <p className="mb-4 text-slate-500">यह प्लेटफॉर्म MPESB/MPPEB परीक्षा पैटर्न पर आधारित अभ्यास टेस्ट प्रदान करता है। यह MPESB का आधिकारिक पोर्टल नहीं है।</p>
           <p className="text-xs text-slate-600">प्रश्न पिछले पैटर्न पर आधारित हैं। 2026 के वास्तविक प्रश्न नहीं हैं। आधिकारिक जानकारी के लिए esb.mp.gov.in देखें।</p>
+          <FooterStats />
         </div>
       </footer>
     </div>
