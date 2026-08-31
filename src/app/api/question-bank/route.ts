@@ -8,11 +8,10 @@ export async function GET(req: NextRequest) {
     const page        = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
     const PAGE_SIZE   = 20
 
-    // Fetch subjects
+    // Fetch subjects (no is_active filter — column may not exist on all rows)
     const { data: subjects } = await supabase
       .from('subjects')
       .select('id, code, name_hi, color')
-      .eq('is_active', true)
       .order('sort_order', { ascending: true })
 
     const subjectList = subjects ?? []
