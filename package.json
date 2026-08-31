@@ -9,6 +9,7 @@
     "lint": "eslint",
     "seed": "npx tsx prisma/seed.ts",
     "seed:subjects": "npx tsx prisma/seed-subject-papers.ts",
+    "seed:ca": "npx tsx prisma/seed-ca-papers.ts",
     "db:reset": "npm run seed"
   },
   "dependencies": {
