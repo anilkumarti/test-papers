@@ -66,32 +66,32 @@ export default function ResultsPage() {
       <div className="max-w-5xl mx-auto px-4 py-8">
 
         {/* Score Card */}
-        <div className="card bg-gradient-to-br from-blue-800 to-blue-700 text-white mb-6">
+        <div className="mb-6 rounded-2xl p-6"
+          style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 60%, #2563eb 100%)', boxShadow: '0 4px 24px rgba(30,58,138,0.3)' }}>
           <div className="text-center">
-            <div className="text-sm text-blue-200 mb-2">{attempt.test.titleHi}</div>
-            <div className="text-5xl font-bold mb-1 text-white">{attempt.score}<span className="text-2xl text-blue-200">/{attempt.test.totalMarks}</span></div>
-            <div className="text-blue-200 text-sm mb-4">{pct}% अंक</div>
-            <div className={`text-lg font-bold ${gradeColor} bg-white px-6 py-2 rounded-full inline-block`}>{grade}</div>
+            <div className="text-sm mb-2" style={{ color: '#93c5fd' }}>{attempt.test.titleHi}</div>
+            <div className="text-6xl font-bold mb-1" style={{ color: '#ffffff', fontVariantNumeric: 'tabular-nums' }}>
+              {attempt.score}
+              <span className="text-3xl font-semibold" style={{ color: '#93c5fd' }}>/{attempt.test.totalMarks}</span>
+            </div>
+            <div className="text-sm mb-5" style={{ color: '#bfdbfe' }}>{pct}% अंक</div>
+            <div className={`text-base font-bold ${gradeColor} bg-white px-6 py-2 rounded-full inline-block`}>{grade}</div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8">
-            <div className="text-center bg-white/10 rounded-xl p-3">
-              <div className="text-2xl font-bold text-green-300">{stats.totalCorrect}</div>
-              <div className="text-blue-200 text-xs mt-0.5">✓ सही</div>
-            </div>
-            <div className="text-center bg-white/10 rounded-xl p-3">
-              <div className="text-2xl font-bold text-red-300">{stats.totalWrong}</div>
-              <div className="text-blue-200 text-xs mt-0.5">✗ गलत</div>
-            </div>
-            <div className="text-center bg-white/10 rounded-xl p-3">
-              <div className="text-2xl font-bold text-slate-300">{stats.totalUnattempted}</div>
-              <div className="text-blue-200 text-xs mt-0.5">— छोड़े</div>
-            </div>
-            <div className="text-center bg-white/10 rounded-xl p-3">
-              <div className="text-2xl font-bold text-amber-300">{stats.accuracy}%</div>
-              <div className="text-blue-200 text-xs mt-0.5">सटीकता</div>
-            </div>
+            {[
+              { val: stats.totalCorrect, label: '✓ सही', color: '#86efac' },
+              { val: stats.totalWrong,   label: '✗ गलत', color: '#fca5a5' },
+              { val: stats.totalUnattempted, label: '— छोड़े', color: '#cbd5e1' },
+              { val: `${stats.accuracy}%`, label: 'सटीकता', color: '#fcd34d' },
+            ].map((s, i) => (
+              <div key={i} className="text-center rounded-xl p-3"
+                style={{ background: 'rgba(255,255,255,0.12)' }}>
+                <div className="text-2xl font-bold" style={{ color: s.color, fontVariantNumeric: 'tabular-nums' }}>{s.val}</div>
+                <div className="text-xs mt-0.5" style={{ color: '#bfdbfe' }}>{s.label}</div>
+              </div>
+            ))}
           </div>
-          <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm text-blue-200">
+          <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm" style={{ color: '#93c5fd' }}>
             <span>⏱ कुल समय: {formatTime(totalTimeSec)}</span>
             <span>📊 प्रयास: {stats.attempted}/{attempt.test.totalQuestions}</span>
             <span>⚡ औसत: {avgTimeSec}s/प्रश्न</span>
