@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     if (!valid) return NextResponse.json({ error: 'ईमेल या पासवर्ड गलत है' }, { status: 401 })
     const token = await signToken({ userId: user.id, email: user.email, role: user.role, name: user.name })
     const cookieStore = await cookies()
-    cookieStore.set('auth-token', token, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 60 * 60 * 24 * 7, path: '/' })
+    cookieStore.set('auth-token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 60 * 60 * 24 * 7, path: '/' })
     return NextResponse.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role } })
   } catch (e) {
     console.error(e)

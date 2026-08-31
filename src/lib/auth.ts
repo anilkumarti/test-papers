@@ -1,9 +1,8 @@
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'mp-patwari-2026-secret-key'
-)
+if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET env var is not set')
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET)
 
 export interface JWTPayload {
   userId: string

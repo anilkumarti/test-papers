@@ -8,7 +8,7 @@ interface Question {
   optionA: string; optionB: string; optionC: string; optionD: string;
   correct: string; explanation: string;
   subject: { nameHi: string; color: string };
-  topic: { nameHi: string };
+  topic: { nameHi: string } | null;
   difficulty: string;
 }
 
@@ -31,7 +31,9 @@ export default function TestPage() {
   const [showPalette, setShowPalette] = useState(false)
   const [error, setError] = useState('')
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const startTime = useRef(Date.now())
+  const startTime = useRef(0)
+  // Keep a ref to submitTest so the timer callback always calls the latest version
+  const submitRef = useRef<(auto?: boolean) => void>(() => {})
 
   useEffect(() => {
     const init = async () => {
@@ -45,9 +47,16 @@ export default function TestPage() {
 
       setAttemptId(d.attempt.id)
       setTest(d.test)
-      setTimeLeft(d.test.duration * 60)
 
-      // Initialize answers
+      // Bug fix: calculate remaining time for resumed attempts
+      if (d.resumed && d.attempt.startedAt) {
+        const elapsed = Math.floor((Date.now() - new Date(d.attempt.startedAt).getTime()) / 1000)
+        setTimeLeft(Math.max(0, d.test.duration * 60 - elapsed))
+      } else {
+        setTimeLeft(d.test.duration * 60)
+      }
+
+      // Initialize answers — mark visited:true for questions already answered on resume
       const ans: Record<string, QAnswer> = {}
       d.test.questions.forEach((tq: TestQuestion) => {
         const existing = d.attempt.answers?.find((a: { questionId: string; selectedOption: string | null; isMarked: boolean }) => a.questionId === tq.question.id)
@@ -55,10 +64,13 @@ export default function TestPage() {
           questionId: tq.question.id,
           selectedOption: existing?.selectedOption ?? null,
           isMarked: existing?.isMarked ?? false,
-          visited: false,
+          visited: existing?.selectedOption != null,
         }
       })
       setAnswers(ans)
+
+      // Bug fix: record start time here, after API load completes
+      startTime.current = Date.now()
       setStatus('started')
     }
     init()
@@ -70,7 +82,8 @@ export default function TestPage() {
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timerRef.current!)
-          submitTest(true)
+          // Defer submit outside the state updater to keep it pure
+          setTimeout(() => submitRef.current(true), 0)
           return 0
         }
         return prev - 1
@@ -122,7 +135,10 @@ export default function TestPage() {
     })
   }
 
-  const submitTest = async (auto = false) => {
+  // Keep ref current so the timer callback never captures a stale closure
+  submitRef.current = submitTest
+
+  async function submitTest(auto = false): Promise<void> {
     if (!attemptId) return
     setStatus('submitting')
     clearInterval(timerRef.current!)
@@ -213,7 +229,7 @@ export default function TestPage() {
           {/* Subject tag */}
           <div className="flex items-center gap-2">
             <span className="badge text-xs font-semibold text-white" style={{ background: currentQ.subject.color }}>{currentQ.subject.nameHi}</span>
-            <span className="text-xs text-slate-500">{currentQ.topic.nameHi}</span>
+            {currentQ.topic && <span className="text-xs text-slate-500">{currentQ.topic.nameHi}</span>}
             {isMarked && <span className="badge bg-purple-100 text-purple-700 text-xs">🔖 समीक्षा के लिए</span>}
           </div>
 
