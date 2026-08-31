@@ -12,6 +12,8 @@ interface SubjectStat { name: string; nameHi: string; color: string; correct: nu
 interface DiffStat { correct: number; wrong: number; skipped: number; total: number; accuracy: number }
 interface TopicStat { nameHi: string; subjectNameHi: string; subjectColor: string; correct: number; total: number; accuracy: number }
 
+interface CoverageItem { subjectId: string; nameHi: string; color: string; total: number; attempted: number }
+
 interface DashData {
   totalTests: number; bestScore: number; avgPercentage: number; totalQuestions: number
   totalAttempted: number; totalWrong: number; totalSkipped: number; marksLost: number
@@ -24,6 +26,7 @@ interface DashData {
   topicStats: TopicStat[]
   strongSubjects: SubjectStat[]
   weakSubjects: SubjectStat[]
+  subjectCoverage: CoverageItem[]
 }
 
 // ─── Helper components ────────────────────────────────────────────────────────
@@ -345,6 +348,57 @@ export default function DashboardPage() {
           </div>
           <ActivityHeatmap calendar={data?.activityCalendar ?? []} />
         </div>
+
+        {/* ── Subject Coverage ── */}
+        {(data?.subjectCoverage?.length ?? 0) > 0 && (
+          <div className="rounded-2xl overflow-hidden mb-5"
+            style={{ background: '#fff', border: '1px solid #e2e8f0', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+            <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #f8fafc' }}>
+              <div>
+                <h2 className="font-bold" style={{ color: '#0f172a' }}>विषयवार कवरेज</h2>
+                <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>कितने पेपर दिए — कितने बाकी</p>
+              </div>
+              <Link href="/tests" className="text-xs font-semibold hover:underline" style={{ color: '#2563eb' }}>सभी टेस्ट →</Link>
+            </div>
+            <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+              {data!.subjectCoverage.map((s) => {
+                const done = s.attempted >= s.total
+                const pct = s.total > 0 ? Math.round((s.attempted / s.total) * 100) : 0
+                return (
+                  <div key={s.subjectId}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: s.color }} />
+                        <span className="text-sm font-medium truncate" style={{ color: '#334155' }}>{s.nameHi}</span>
+                      </div>
+                      <div className="flex items-center gap-2 ml-3 flex-shrink-0">
+                        <span className="text-xs font-bold" style={{ color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
+                          {s.attempted}/{s.total} पेपर
+                        </span>
+                        {done
+                          ? <span className="text-xs font-bold" style={{ color: '#15803d' }}>✓</span>
+                          : (
+                            <Link href="/tests"
+                              className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                              style={{ color: '#1e40af', background: '#eff6ff' }}>
+                              अभी दें
+                            </Link>
+                          )}
+                      </div>
+                    </div>
+                    <div className="h-2 rounded-full overflow-hidden" style={{ background: '#f1f5f9' }}>
+                      <div className="h-full rounded-full transition-all duration-700"
+                        style={{
+                          width: `${pct}%`,
+                          background: done ? '#16a34a' : s.attempted === 0 ? '#e2e8f0' : s.color,
+                        }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ── Main grid: Recent tests + Subject analysis ── */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 mb-5">

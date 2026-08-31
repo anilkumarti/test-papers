@@ -126,6 +126,37 @@ export async function GET() {
     const totalAttempted = qAttempts.filter((qa: any) => qa.selected_option !== null).length
     const avgTimePerQuestion = totalAttempted > 0 ? Math.round(totalTimeSec / totalAttempted) : 0
 
+    // Subject coverage: total published papers per subject vs user attempted
+    const [{ data: allTests }, { data: allSubjects }] = await Promise.all([
+      supabase.from('mock_tests').select('id, subject_id').eq('is_published', true).eq('is_active', true).neq('type', 'CURRENT_AFFAIRS'),
+      supabase.from('subjects').select('id, name_hi, color').eq('is_active', true),
+    ])
+
+    const subjectMeta: Record<string, { nameHi: string; color: string }> = {}
+    for (const s of allSubjects ?? []) subjectMeta[s.id] = { nameHi: s.name_hi, color: s.color }
+
+    const totalBySubject: Record<string, number> = {}
+    for (const t of allTests ?? []) {
+      if (t.subject_id && subjectMeta[t.subject_id]) totalBySubject[t.subject_id] = (totalBySubject[t.subject_id] ?? 0) + 1
+    }
+
+    const attemptedBySubject: Record<string, Set<string>> = {}
+    for (const a of attempts) {
+      if (!a.test?.subjectId || a.test?.type === 'CURRENT_AFFAIRS') continue
+      if (!attemptedBySubject[a.test.subjectId]) attemptedBySubject[a.test.subjectId] = new Set()
+      attemptedBySubject[a.test.subjectId].add(a.test.id)
+    }
+
+    const subjectCoverage = Object.entries(totalBySubject)
+      .map(([sid, total]) => ({
+        subjectId: sid,
+        nameHi: subjectMeta[sid].nameHi,
+        color: subjectMeta[sid].color,
+        total,
+        attempted: attemptedBySubject[sid]?.size ?? 0,
+      }))
+      .sort((a, b) => b.total - a.total)
+
     return NextResponse.json({
       totalTests,
       bestScore: Math.round(bestScore * 10) / 10,
@@ -145,6 +176,7 @@ export async function GET() {
       topicStats,
       strongSubjects: subjectStats.filter(s => s.accuracy >= 70).slice(0, 3),
       weakSubjects: subjectStats.filter(s => s.accuracy < 60).slice(0, 3),
+      subjectCoverage,
     })
   } catch (e) {
     console.error(e)
