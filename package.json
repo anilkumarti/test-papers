@@ -10,6 +10,7 @@
     "seed": "npx tsx prisma/seed.ts",
     "seed:subjects": "npx tsx prisma/seed-subject-papers.ts",
     "seed:ca": "npx tsx prisma/seed-ca-papers.ts",
+    "seed:ca2026": "npx tsx prisma/seed-ca-2026.ts",
     "db:reset": "npm run seed"
   },
   "dependencies": {
