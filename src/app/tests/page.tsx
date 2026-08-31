@@ -3,10 +3,12 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 
+interface Subject { id: string; name: string; nameHi: string; color: string; code: string; order: number }
 interface Test {
   id: string; title: string; titleHi: string; description: string | null;
   type: string; totalQuestions: number; totalMarks: number; duration: number;
-  negativeMarks: number; order: number; _count: { attempts: number }
+  negativeMarks: number; order: number; subjectId: string | null;
+  _count: { attempts: number }
 }
 
 const typeLabels: Record<string, { label: string; color: string }> = {
@@ -20,20 +22,46 @@ const typeLabels: Record<string, { label: string; color: string }> = {
 
 export default function TestsPage() {
   const [tests, setTests] = useState<Test[]>([])
+  const [subjects, setSubjects] = useState<Subject[]>([])
   const [userAttempts, setUserAttempts] = useState<Record<string, { completed: boolean; lastId: string }>>({})
   const [filter, setFilter] = useState('ALL')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/tests').then(r => r.json()).then(d => {
-      setTests(d.tests || [])
-      setUserAttempts(d.userAttempts || {})
+    Promise.all([
+      fetch('/api/tests').then(r => r.json()),
+      fetch('/api/subjects').then(r => r.json()),
+    ]).then(([td, sd]) => {
+      setTests(td.tests || [])
+      setSubjects(sd.subjects || [])
+      setUserAttempts(td.userAttempts || {})
       setLoading(false)
     })
   }, [])
 
   const filters = ['ALL', 'FULL', 'SUBJECT', 'PREVIOUS_YEAR', 'CURRENT_AFFAIRS', 'PRACTICE']
   const filtered = filter === 'ALL' ? tests : tests.filter(t => t.type === filter)
+
+  // Build subject lookup map
+  const subjectMap = Object.fromEntries(subjects.map(s => [s.id, s]))
+
+  // Group SUBJECT tests by subject
+  const subjectGroups: { subject: Subject; tests: Test[] }[] = []
+  if (filter === 'SUBJECT') {
+    const map = new Map<string, { subject: Subject; tests: Test[] }>()
+    filtered.forEach(t => {
+      const key = t.subjectId ?? 'other'
+      const sub = subjectMap[key] ?? { id: 'other', name: 'Other', nameHi: 'अन्य', color: '#64748b', code: 'OTHER', order: 99 }
+      if (!map.has(key)) map.set(key, { subject: sub, tests: [] })
+      map.get(key)!.tests.push(t)
+    })
+    map.forEach(v => subjectGroups.push(v))
+    subjectGroups.sort((a, b) => (a.subject.order ?? 99) - (b.subject.order ?? 99))
+  }
+
+  const SUBJECT_ICONS: Record<string, string> = {
+    MATH: '📐', HIN: '📝', GK: '🌍', COMP: '💻', REASON: '🧠', RURAL: '🏡', ENG: '🔤',
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -61,6 +89,58 @@ export default function TestsPage() {
             <div className="text-5xl mb-4">📋</div>
             <div className="font-semibold text-slate-700 mb-2">कोई टेस्ट नहीं मिला</div>
             <p className="text-sm">जल्द ही नए टेस्ट जोड़े जाएंगे</p>
+          </div>
+        ) : filter === 'SUBJECT' ? (
+          <div className="space-y-10">
+            {subjectGroups.map(({ subject, tests: grpTests }) => (
+              <div key={subject.code}>
+                {/* Subject heading */}
+                <div className="flex items-center gap-3 mb-4 pb-2 border-b-2" style={{ borderColor: subject.color }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl font-bold text-white flex-shrink-0"
+                    style={{ background: subject.color }}>
+                    {SUBJECT_ICONS[subject.code] ?? '📚'}
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-800">{subject.nameHi}</h2>
+                    <p className="text-xs text-slate-500">{grpTests.length} पेपर उपलब्ध</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {grpTests.map((test, idx) => {
+                    const attempt = userAttempts[test.id]
+                    return (
+                      <div key={test.id} className="card hover:shadow-md transition-all flex flex-col"
+                        style={{ borderLeft: `4px solid ${subject.color}` }}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                            style={{ background: subject.color + '20', color: subject.color }}>
+                            पेपर {idx + 1}
+                          </span>
+                          {attempt && <span className="badge bg-green-100 text-green-700 text-xs">✓ दिया</span>}
+                        </div>
+                        <h3 className="font-bold text-slate-800 text-base mb-1 leading-snug">{test.titleHi}</h3>
+                        <div className="grid grid-cols-3 gap-2 mb-4 mt-2 bg-slate-50 rounded-lg p-3 text-xs text-slate-600">
+                          <div className="text-center"><div className="font-bold text-slate-800 text-base">{test.totalQuestions}</div><div>प्रश्न</div></div>
+                          <div className="text-center border-x border-slate-200"><div className="font-bold text-slate-800 text-base">{test.totalMarks}</div><div>अंक</div></div>
+                          <div className="text-center"><div className="font-bold text-slate-800 text-base">{test.duration}</div><div>मिनट</div></div>
+                        </div>
+                        <div className="flex gap-2 mt-auto">
+                          <Link href={`/test/${test.id}`} className="btn-primary flex-1 justify-center text-sm py-2"
+                            style={{ background: subject.color }}>
+                            {attempt ? 'फिर दें' : 'शुरू करें'}
+                          </Link>
+                          {attempt && (
+                            <Link href={`/results/${attempt.lastId}`}
+                              className="btn-secondary text-sm py-2 px-3"
+                              title="परिणाम देखें">📊</Link>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
