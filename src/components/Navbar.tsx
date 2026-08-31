@@ -40,6 +40,8 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-6">
             <Link href="/" className="text-slate-600 hover:text-blue-700 font-medium text-sm transition-colors">होम</Link>
             <Link href="/tests" className="text-slate-600 hover:text-blue-700 font-medium text-sm transition-colors">टेस्ट</Link>
+            <Link href="/daily-challenge" className="text-slate-600 hover:text-blue-700 font-medium text-sm transition-colors">🎯 चैलेंज</Link>
+            <Link href="/current-affairs" className="text-slate-600 hover:text-blue-700 font-medium text-sm transition-colors">📰 करेंट अफेयर्स</Link>
             {user && <Link href="/dashboard" className="text-slate-600 hover:text-blue-700 font-medium text-sm transition-colors">डैशबोर्ड</Link>}
             {user?.role === 'ADMIN' && <Link href="/admin" className="text-slate-600 hover:text-blue-700 font-medium text-sm transition-colors">Admin</Link>}
           </div>
