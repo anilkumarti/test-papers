@@ -20,7 +20,7 @@ const typeLabels: Record<string, { label: string; color: string }> = {
 
 export default function TestsPage() {
   const [tests, setTests] = useState<Test[]>([])
-  const [userAttempts, setUserAttempts] = useState<Record<string, boolean>>({})
+  const [userAttempts, setUserAttempts] = useState<Record<string, { completed: boolean; lastId: string }>>({})
   const [filter, setFilter] = useState('ALL')
   const [loading, setLoading] = useState(true)
 
@@ -66,12 +66,12 @@ export default function TestsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map(test => {
               const tl = typeLabels[test.type] || { label: test.type, color: 'bg-slate-100 text-slate-700' }
-              const attempted = userAttempts[test.id]
+              const attempt = userAttempts[test.id]
               return (
                 <div key={test.id} className="card hover:shadow-md transition-all flex flex-col">
                   <div className="flex items-start justify-between mb-3">
                     <span className={`badge text-xs ${tl.color}`}>{tl.label}</span>
-                    {attempted && <span className="badge bg-green-100 text-green-700 text-xs">✓ दिया</span>}
+                    {attempt && <span className="badge bg-green-100 text-green-700 text-xs">✓ दिया</span>}
                   </div>
                   <h3 className="font-bold text-slate-800 text-base mb-1 leading-snug">{test.titleHi}</h3>
                   {test.description && <p className="text-slate-500 text-sm mb-4 flex-1">{test.description}</p>}
@@ -80,12 +80,16 @@ export default function TestsPage() {
                     <div className="text-center border-x border-slate-200"><div className="font-bold text-slate-800 text-base">{test.totalMarks}</div><div>अंक</div></div>
                     <div className="text-center"><div className="font-bold text-slate-800 text-base">{test.duration}</div><div>मिनट</div></div>
                   </div>
-                  <div className="flex gap-2 mt-auto">
+                  <div className="flex gap-2 mt-auto flex-wrap">
                     <Link href={`/test/${test.id}`} className="btn-primary flex-1 justify-center text-sm py-2">
-                      {attempted ? 'फिर दें' : 'शुरू करें'}
+                      {attempt ? 'फिर दें' : 'शुरू करें'}
                     </Link>
-                    {attempted && (
-                      <Link href={`/tests/${test.id}/history`} className="btn-secondary text-sm py-2 px-3">इतिहास</Link>
+                    {attempt && (
+                      <Link href={`/results/${attempt.lastId}`}
+                        className="btn-secondary text-sm py-2 px-3 flex items-center gap-1"
+                        title="अंतिम प्रयास का परिणाम देखें">
+                        📊 परिणाम
+                      </Link>
                     )}
                   </div>
                 </div>
