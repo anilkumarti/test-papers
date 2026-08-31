@@ -131,7 +131,7 @@ export default function DashboardPage() {
                 <Link href="/tests" className="btn-primary text-sm py-2 px-5">टेस्ट दें</Link>
               </div>
             ) : (
-              <div style={{ divide: 'y' }}>
+              <div>
                 {data.recentAttempts.map((a, idx) => {
                   const pct = Math.round(a.percentage ?? 0)
                   const barCol = pct >= 60 ? '#16a34a' : pct >= 40 ? '#d97706' : '#dc2626'
