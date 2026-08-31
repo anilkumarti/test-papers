@@ -49,35 +49,37 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       subjectStats[subId].timeTaken += timeTaken
 
       // Topic stats
-      if (!topicStats[topicId]) {
-        topicStats[topicId] = { subjectNameHi: q.subjects.name_hi, subjectColor: q.subjects.color, nameHi: q.topics.name_hi, correct: 0, wrong: 0, unattempted: 0, total: 0, timeTaken: 0 }
+      if (topicId) {
+        if (!topicStats[topicId]) {
+          topicStats[topicId] = { subjectNameHi: q.subjects.name_hi, subjectColor: q.subjects.color, nameHi: q.topics?.name_hi ?? 'अन्य', correct: 0, wrong: 0, unattempted: 0, total: 0, timeTaken: 0 }
+        }
+        topicStats[topicId].total++
+        topicStats[topicId].timeTaken += timeTaken
       }
-      topicStats[topicId].total++
-      topicStats[topicId].timeTaken += timeTaken
 
       // Difficulty stats
       if (difficultyStats[diff]) difficultyStats[diff].total++
 
       if (qa.selected_option === null) {
         subjectStats[subId].unattempted++
-        topicStats[topicId].unattempted++
+        if (topicId) topicStats[topicId].unattempted++
         if (difficultyStats[diff]) difficultyStats[diff].unattempted++
         totalUnattempted++
       } else if (qa.is_correct) {
         subjectStats[subId].correct++
-        topicStats[topicId].correct++
+        if (topicId) topicStats[topicId].correct++
         if (difficultyStats[diff]) difficultyStats[diff].correct++
         totalCorrect++
       } else {
         subjectStats[subId].wrong++
-        topicStats[topicId].wrong++
+        if (topicId) topicStats[topicId].wrong++
         if (difficultyStats[diff]) difficultyStats[diff].wrong++
         totalWrong++
       }
 
       return {
         ...mapQA(qa),
-        question: { ...mapQuestion(q), subject: mapSubject(q.subjects), topic: mapTopic(q.topics) },
+        question: { ...mapQuestion(q), subject: mapSubject(q.subjects), topic: q.topics ? mapTopic(q.topics) : null },
       }
     })
 

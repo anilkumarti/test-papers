@@ -33,8 +33,9 @@ export async function GET() {
 
     const subMap: Record<string, { name: string; nameHi: string; color: string; correct: number; total: number }> = {}
     for (const qa of qAttempts as any[]) {
+      if (!qa.questions) continue
       const sid = qa.questions.subject_id
-      if (!subMap[sid]) subMap[sid] = { name: qa.questions.subjects.name, nameHi: qa.questions.subjects.name_hi, color: qa.questions.subjects.color, correct: 0, total: 0 }
+      if (!subMap[sid]) subMap[sid] = { name: qa.questions.subjects?.name ?? '', nameHi: qa.questions.subjects?.name_hi ?? '', color: qa.questions.subjects?.color ?? '#6b7280', correct: 0, total: 0 }
       subMap[sid].total++
       if (qa.is_correct) subMap[sid].correct++
     }
