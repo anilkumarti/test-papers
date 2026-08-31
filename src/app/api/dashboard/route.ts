@@ -13,7 +13,14 @@ export async function GET() {
       .eq('user_id', session.userId).eq('is_completed', true)
       .order('submitted_at', { ascending: false })
 
-    const attempts = (rows ?? []).map((a: any) => ({ ...a, test: mapTest(a.mock_tests) }))
+    const attempts = (rows ?? []).map((a: any) => ({
+      id: a.id,
+      score: a.score,
+      percentage: a.percentage,
+      submittedAt: a.submitted_at,
+      timeTaken: a.time_taken,
+      test: mapTest(a.mock_tests),
+    }))
     const totalTests = attempts.length
     const bestScore = totalTests > 0 ? Math.max(...attempts.map((a: any) => a.score ?? 0)) : 0
     const avgScore = totalTests > 0 ? attempts.reduce((s: number, a: any) => s + (a.score ?? 0), 0) / totalTests : 0
