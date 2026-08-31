@@ -35,7 +35,7 @@ const TYPE_META: Record<string, { label: string; color: string; bg: string; icon
 }
 
 const SUBJECT_ICONS: Record<string, string> = {
-  MATH: '📐', HIN: '📝', GK: '🌍', COMP: '💻', REASON: '🧠', RURAL: '🏡', ENG: '🔤',
+  MATH: '📐', HIN: '📝', GK: '🌍', COMP: '💻', REASON: '🧠', MGMT: '🏛️', ENG: '🔤', SCI: '🔬',
 }
 
 const FILTER_LABELS: Record<string, string> = {

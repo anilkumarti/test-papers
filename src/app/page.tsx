@@ -3,14 +3,18 @@ import Navbar from '@/components/Navbar'
 import FooterStats from '@/components/FooterStats'
 import ExamCountdown from '@/components/ExamCountdown'
 
+// MPESB 2026 official pattern — 200 questions, 2 sections × 100 marks, 3 hours
 const examPattern = [
-  { subject: 'सामान्य ज्ञान एवं MP GK', questions: 25, marks: 25, color: '#3b82f6' },
-  { subject: 'सामान्य हिन्दी',           questions: 15, marks: 15, color: '#8b5cf6' },
-  { subject: 'सामान्य गणित',             questions: 20, marks: 20, color: '#f59e0b' },
-  { subject: 'सामान्य अंग्रेजी',          questions: 5,  marks: 5,  color: '#10b981' },
-  { subject: 'सामान्य तर्कशक्ति',         questions: 15, marks: 15, color: '#ef4444' },
-  { subject: 'कंप्यूटर ज्ञान',            questions: 10, marks: 10, color: '#06b6d4' },
-  { subject: 'ग्रामीण अर्थव्यवस्था एवं पंचायती राज', questions: 10, marks: 10, color: '#84cc16' },
+  // खंड 1
+  { subject: 'सामान्य विज्ञान',             questions: 25, marks: 25, color: '#f43f5e', section: 1 },
+  { subject: 'सामान्य हिन्दी',              questions: 25, marks: 25, color: '#8b5cf6', section: 1 },
+  { subject: 'सामान्य अंग्रेजी',            questions: 25, marks: 25, color: '#10b981', section: 1 },
+  { subject: 'सामान्य गणित',               questions: 25, marks: 25, color: '#f59e0b', section: 1 },
+  // खंड 2
+  { subject: 'सामान्य ज्ञान एवं अभिरुचि', questions: 25, marks: 25, color: '#3b82f6', section: 2 },
+  { subject: 'कंप्यूटर ज्ञान',             questions: 25, marks: 25, color: '#06b6d4', section: 2 },
+  { subject: 'सामान्य तर्कशक्ति',           questions: 25, marks: 25, color: '#ef4444', section: 2 },
+  { subject: 'सामान्य प्रबंधन',             questions: 25, marks: 25, color: '#84cc16', section: 2 },
 ]
 
 const features = [
@@ -23,8 +27,8 @@ const features = [
 ]
 
 const faqs = [
-  { q: 'MP Patwari 2026 परीक्षा में कितने प्रश्न होंगे?', a: 'पिछले MPESB पैटर्न के अनुसार कुल 100 प्रश्न होते हैं, प्रत्येक 1 अंक का। कुल अंक 100 और समय 120 मिनट होता है।' },
-  { q: 'क्या नकारात्मक अंकन (Negative Marking) है?', a: 'पिछली MP Patwari परीक्षाओं में नकारात्मक अंकन नहीं था। आधिकारिक 2026 अधिसूचना से इसकी पुष्टि करें।' },
+  { q: 'MP Patwari 2026 परीक्षा में कितने प्रश्न होंगे?', a: 'MPESB 2026 अधिसूचना के अनुसार कुल 200 प्रश्न होंगे, प्रत्येक 1 अंक का। परीक्षा 2 खंडों में होगी — खंड 1: सामान्य विज्ञान, हिन्दी, अंग्रेजी, गणित (100 अंक); खंड 2: सामान्य ज्ञान, कंप्यूटर, तर्कशक्ति, सामान्य प्रबंधन (100 अंक)। कुल समय 3 घंटे (180 मिनट)।' },
+  { q: 'क्या नकारात्मक अंकन (Negative Marking) है?', a: 'हाँ, MPESB 2026 पैटर्न में प्रत्येक गलत उत्तर पर 0.25 अंक काटे जाएंगे। इसलिए अनिश्चित प्रश्न छोड़ना बेहतर हो सकता है। आधिकारिक अधिसूचना से पुष्टि करें।' },
   { q: 'मॉक टेस्ट वास्तविक परीक्षा से कितना मिलता-जुलता है?', a: 'हमारे मॉक टेस्ट पिछले MPESB/MPPEB परीक्षाओं के पैटर्न पर आधारित हैं। कठिनाई स्तर, विषय वितरण और प्रश्न शैली समान रखी गई है।' },
   { q: 'क्या मॉक टेस्ट हिंदी में है?', a: 'हाँ, सभी प्रश्न मुख्यतः हिंदी में हैं। कुछ अंग्रेजी और कंप्यूटर प्रश्न अंग्रेजी में भी हो सकते हैं।' },
   { q: 'कितने मॉक टेस्ट उपलब्ध हैं?', a: 'फुल लेंथ मॉक टेस्ट, विषयवार टेस्ट, पिछले वर्ष के पैटर्न पर आधारित टेस्ट और करंट अफेयर्स टेस्ट उपलब्ध हैं।' },
@@ -86,7 +90,7 @@ export default function HomePage() {
             {[
               { val: '500+', label: 'प्रश्न' },
               { val: '20+',  label: 'मॉक टेस्ट' },
-              { val: '7',    label: 'विषय' },
+              { val: '8',    label: 'विषय' },
             ].map((s, i) => (
               <div key={i} className="text-center rounded-2xl py-3"
                 style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
@@ -105,9 +109,10 @@ export default function HomePage() {
             <span className="text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-3 inline-block"
               style={{ background: '#eff6ff', color: '#1e40af' }}>परीक्षा पैटर्न</span>
             <h2 className="text-2xl sm:text-3xl font-bold mt-2" style={{ color: '#0f172a' }}>विषयवार प्रश्न वितरण</h2>
-            <p className="text-sm mt-2" style={{ color: '#94a3b8' }}>* पिछले MPESB पैटर्न पर आधारित। 2026 अधिसूचना से आधिकारिक पुष्टि करें।</p>
+            <p className="text-sm mt-2" style={{ color: '#94a3b8' }}>MPESB 2026 आधिकारिक अधिसूचना पर आधारित। परीक्षा तिथि: 22 सितम्बर 2026।</p>
           </div>
           <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #e4e9f2', boxShadow: '0 4px 20px rgba(15,23,42,0.07)' }}>
+            {/* Header */}
             <div className="grid grid-cols-4 text-sm font-bold px-5 py-3.5 text-white"
               style={{ background: 'linear-gradient(90deg, #1e3a8a, #1e40af)' }}>
               <div>विषय</div>
@@ -115,7 +120,12 @@ export default function HomePage() {
               <div className="text-center">अंक</div>
               <div className="text-center">%</div>
             </div>
-            {examPattern.map((s, i) => (
+            {/* Section 1 */}
+            <div className="px-5 py-2 text-xs font-bold tracking-wide"
+              style={{ background: '#eef2ff', color: '#3730a3', borderBottom: '1px solid #e4e9f2' }}>
+              खंड 1 — भाषा, विज्ञान एवं गणित (100 अंक)
+            </div>
+            {examPattern.filter(s => s.section === 1).map((s, i) => (
               <div key={i} className="grid grid-cols-4 px-5 py-3 text-sm border-b"
                 style={{ background: i % 2 === 0 ? 'white' : '#fafbff', borderColor: '#f0f4f8' }}>
                 <div className="flex items-center gap-2 font-medium" style={{ color: '#334155' }}>
@@ -124,20 +134,38 @@ export default function HomePage() {
                 </div>
                 <div className="text-center font-bold" style={{ color: '#1e293b', fontVariantNumeric: 'tabular-nums' }}>{s.questions}</div>
                 <div className="text-center font-bold" style={{ color: '#1e293b', fontVariantNumeric: 'tabular-nums' }}>{s.marks}</div>
-                <div className="text-center" style={{ color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>{s.marks}%</div>
+                <div className="text-center" style={{ color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>{Math.round(s.marks/2)}%</div>
               </div>
             ))}
+            {/* Section 2 */}
+            <div className="px-5 py-2 text-xs font-bold tracking-wide"
+              style={{ background: '#f0f9ff', color: '#0c4a6e', borderBottom: '1px solid #e4e9f2' }}>
+              खंड 2 — ज्ञान, तर्क एवं प्रबंधन (100 अंक)
+            </div>
+            {examPattern.filter(s => s.section === 2).map((s, i) => (
+              <div key={i} className="grid grid-cols-4 px-5 py-3 text-sm border-b"
+                style={{ background: i % 2 === 0 ? 'white' : '#fafbff', borderColor: '#f0f4f8' }}>
+                <div className="flex items-center gap-2 font-medium" style={{ color: '#334155' }}>
+                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: s.color }} />
+                  <span className="truncate">{s.subject}</span>
+                </div>
+                <div className="text-center font-bold" style={{ color: '#1e293b', fontVariantNumeric: 'tabular-nums' }}>{s.questions}</div>
+                <div className="text-center font-bold" style={{ color: '#1e293b', fontVariantNumeric: 'tabular-nums' }}>{s.marks}</div>
+                <div className="text-center" style={{ color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>{Math.round(s.marks/2)}%</div>
+              </div>
+            ))}
+            {/* Total */}
             <div className="grid grid-cols-4 px-5 py-3.5 font-bold text-sm"
               style={{ background: '#eff6ff', color: '#1e40af' }}>
               <div>कुल</div>
-              <div className="text-center" style={{ fontVariantNumeric: 'tabular-nums' }}>100</div>
-              <div className="text-center" style={{ fontVariantNumeric: 'tabular-nums' }}>100</div>
+              <div className="text-center" style={{ fontVariantNumeric: 'tabular-nums' }}>200</div>
+              <div className="text-center" style={{ fontVariantNumeric: 'tabular-nums' }}>200</div>
               <div className="text-center" style={{ fontVariantNumeric: 'tabular-nums' }}>100%</div>
             </div>
           </div>
           <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm" style={{ color: '#475569' }}>
-            <span>⏱ <strong style={{ color: '#1e40af' }}>120 मिनट</strong></span>
-            <span>❌ <strong style={{ color: '#16a34a' }}>नकारात्मक अंक नहीं</strong> (पिछले पैटर्न अनुसार)</span>
+            <span>⏱ <strong style={{ color: '#1e40af' }}>180 मिनट (3 घंटे)</strong></span>
+            <span>⚠️ <strong style={{ color: '#dc2626' }}>-0.25 नकारात्मक अंकन</strong> प्रति गलत उत्तर</span>
             <span>🖥 <strong style={{ color: '#1e40af' }}>CBT मोड</strong></span>
             <span>📝 <strong style={{ color: '#1e40af' }}>हिंदी / अंग्रेजी</strong></span>
           </div>
