@@ -38,6 +38,24 @@ function ScorePill({ pct }: { pct: number }) {
   return <span className="text-xs font-bold px-2.5 py-0.5 rounded-full" style={{ ...s, fontVariantNumeric: 'tabular-nums' }}>{p}%</span>
 }
 
+function ImprovementArrow({ curr, prev, size = 'md' }: { curr: number; prev: number; size?: 'sm' | 'md' }) {
+  const delta = Math.round(curr - prev)
+  if (delta === 0) return null
+  const up = delta > 0
+  return (
+    <span className="inline-flex items-center gap-0.5 font-bold rounded-full"
+      style={{
+        fontSize: size === 'sm' ? 10 : 11,
+        padding: size === 'sm' ? '1px 6px' : '2px 8px',
+        color: up ? '#15803d' : '#b91c1c',
+        background: up ? '#f0fdf4' : '#fef2f2',
+        fontVariantNumeric: 'tabular-nums',
+      }}>
+      {up ? '↑' : '↓'}{up ? '+' : ''}{delta}%
+    </span>
+  )
+}
+
 // ─── Score Trend Chart (inline SVG) ──────────────────────────────────────────
 
 function ScoreTrendChart({ history }: { history: ScorePoint[] }) {
@@ -259,12 +277,20 @@ export default function DashboardPage() {
                 <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>प्रत्येक टेस्ट का प्रतिशत (लाल रेखा = कटऑफ 60%)</p>
               </div>
               {hasData && (
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                  style={(data?.avgPercentage ?? 0) >= 60
-                    ? { color: '#15803d', background: '#f0fdf4' }
-                    : { color: '#b91c1c', background: '#fef2f2' }}>
-                  औसत {data?.avgPercentage}%
-                </span>
+                <div className="flex items-center gap-2">
+                  {(data?.scoreHistory?.length ?? 0) >= 2 && (
+                    <ImprovementArrow
+                      curr={data!.scoreHistory[data!.scoreHistory.length - 1].percentage}
+                      prev={data!.scoreHistory[data!.scoreHistory.length - 2].percentage}
+                    />
+                  )}
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                    style={(data?.avgPercentage ?? 0) >= 60
+                      ? { color: '#15803d', background: '#f0fdf4' }
+                      : { color: '#b91c1c', background: '#fef2f2' }}>
+                    औसत {data?.avgPercentage}%
+                  </span>
+                </div>
               )}
             </div>
             <div className="px-3 py-3">
@@ -359,7 +385,12 @@ export default function DashboardPage() {
                         <p className="text-sm font-bold" style={{ color: '#1e293b', fontVariantNumeric: 'tabular-nums' }}>
                           {a.score}<span className="font-normal text-xs" style={{ color: '#94a3b8' }}>/{a.test.totalMarks}</span>
                         </p>
-                        <div className="mt-1"><ScorePill pct={a.percentage} /></div>
+                        <div className="mt-1 flex items-center justify-end gap-1.5">
+                          {idx < data.recentAttempts.length - 1 && (
+                            <ImprovementArrow curr={a.percentage} prev={data.recentAttempts[idx + 1].percentage} size="sm" />
+                          )}
+                          <ScorePill pct={a.percentage} />
+                        </div>
                       </div>
                       <span style={{ color: '#cbd5e1' }}>›</span>
                     </Link>

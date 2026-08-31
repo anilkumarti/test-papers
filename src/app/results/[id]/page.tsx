@@ -5,6 +5,106 @@ import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import { formatTime, getDifficultyLabel, getDifficultyColor } from '@/lib/utils'
 
+// ─── Score Card Generator ──────────────────────────────────────────────────────
+
+function buildScoreCardCanvas(p: {
+  testName: string; score: number; totalMarks: number; percentage: number
+  grade: string; correct: number; wrong: number; skipped: number; accuracy: number; host: string
+}): HTMLCanvasElement {
+  const W = 800, H = 460, DPR = 2
+  const canvas = document.createElement('canvas')
+  canvas.width = W * DPR; canvas.height = H * DPR
+  const ctx = canvas.getContext('2d')!
+  ctx.scale(DPR, DPR)
+
+  // Background
+  const grad = ctx.createLinearGradient(0, 0, W, H)
+  grad.addColorStop(0, '#0c1a4e'); grad.addColorStop(0.55, '#1e3a8a'); grad.addColorStop(1, '#1d4ed8')
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H)
+
+  // Decorative circles
+  ctx.save(); ctx.globalAlpha = 0.055; ctx.fillStyle = '#fff'
+  ;([[740, -30, 175], [50, 470, 140], [W / 2, H / 2, 250]] as [number, number, number][]).forEach(([x, y, r]) => {
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill()
+  })
+  ctx.restore()
+
+  // Rounded-rect helper
+  function rr(x: number, y: number, w: number, h: number, r: number) {
+    ctx.beginPath()
+    ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y)
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+    ctx.lineTo(x + w, y + h - r)
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+    ctx.lineTo(x + r, y + h)
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+    ctx.lineTo(x, y + r)
+    ctx.quadraticCurveTo(x, y, x + r, y)
+    ctx.closePath()
+  }
+
+  const cx = W / 2
+
+  // Header
+  ctx.textAlign = 'center'; ctx.font = 'bold 13px sans-serif'; ctx.fillStyle = '#93c5fd'
+  ctx.fillText('MP PATWARI 2026  •  MOCK TEST SERIES', cx, 38)
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1
+  ctx.beginPath(); ctx.moveTo(60, 52); ctx.lineTo(W - 60, 52); ctx.stroke()
+
+  // Test name
+  const name = p.testName.length > 55 ? p.testName.slice(0, 55) + '…' : p.testName
+  ctx.font = '15px sans-serif'; ctx.fillStyle = '#bfdbfe'; ctx.fillText(name, cx, 76)
+
+  // Score — left half right-aligned, right half left-aligned
+  ctx.textAlign = 'right'; ctx.font = 'bold 88px sans-serif'; ctx.fillStyle = '#ffffff'
+  ctx.fillText(String(p.score), cx - 8, 162)
+  ctx.textAlign = 'left'; ctx.font = 'bold 34px sans-serif'; ctx.fillStyle = '#93c5fd'
+  ctx.fillText('/ ' + p.totalMarks, cx + 8, 160)
+
+  // Percentage + grade
+  ctx.textAlign = 'center'
+  ctx.font = 'bold 22px sans-serif'; ctx.fillStyle = '#fbbf24'
+  ctx.fillText(p.percentage + '% अंक', cx, 195)   // "% अंक"
+  const gc = p.percentage >= 80 ? '#86efac' : p.percentage >= 60 ? '#93c5fd' : p.percentage >= 40 ? '#fcd34d' : '#fca5a5'
+  ctx.font = 'bold 16px sans-serif'; ctx.fillStyle = gc; ctx.fillText(p.grade, cx, 222)
+
+  // Separator
+  ctx.strokeStyle = 'rgba(255,255,255,0.10)'
+  ctx.beginPath(); ctx.moveTo(60, 242); ctx.lineTo(W - 60, 242); ctx.stroke()
+
+  // Stats boxes
+  const statItems = [
+    { val: String(p.correct),  label: '✓ सही',   color: '#86efac' },  // ✓ सही
+    { val: String(p.wrong),    label: '✗ गलत',    color: '#fca5a5' },  // ✗ गलत
+    { val: String(p.skipped),  label: '— छोड़े', color: '#cbd5e1' }, // — छोड़े
+    { val: p.accuracy + '%',   label: 'सटीकता', color: '#fcd34d' }, // सटीकता
+  ]
+  const bW = 162, bH = 72, bGap = 13
+  const bTW = statItems.length * bW + (statItems.length - 1) * bGap
+  const bX0 = (W - bTW) / 2
+  const bY = 260
+
+  statItems.forEach((s, i) => {
+    const bx = bX0 + i * (bW + bGap)
+    ctx.save(); ctx.globalAlpha = 0.14; ctx.fillStyle = '#fff'; rr(bx, bY, bW, bH, 12); ctx.fill(); ctx.restore()
+    ctx.textAlign = 'center'
+    ctx.font = 'bold 28px sans-serif'; ctx.fillStyle = s.color; ctx.fillText(s.val, bx + bW / 2, bY + 34)
+    ctx.font = '13px sans-serif'; ctx.fillStyle = '#bfdbfe'; ctx.fillText(s.label, bx + bW / 2, bY + 56)
+  })
+
+  // Challenge text
+  ctx.font = 'bold 19px sans-serif'; ctx.fillStyle = '#fbbf24'
+  // "क्या आप मुझे हरा सकते हैं?" in unicode to avoid any encoding issues
+  ctx.fillText('क्या आप मुझे हरा सकते हैं?', cx, 374)
+
+  // Bottom bar
+  ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fillRect(0, H - 40, W, 40)
+  ctx.font = 'bold 11.5px sans-serif'; ctx.fillStyle = '#93c5fd'
+  ctx.fillText(p.host + '  •  MP Patwari 2026 Mock Test Series', cx, H - 13)
+
+  return canvas
+}
+
 interface QAttempt {
   id: string; questionId: string; selectedOption: string | null; isCorrect: boolean | null; timeTaken: number | null
   question: { id: string; textHi: string; optionA: string; optionB: string; optionC: string; optionD: string; correct: string; explanation: string; difficulty: string; subject: { nameHi: string; color: string }; topic: { nameHi: string } }
@@ -27,6 +127,7 @@ export default function ResultsPage() {
   const [tab, setTab] = useState<'overview' | 'time' | 'review'>('review')
   const [reviewFilter, setReviewFilter] = useState<'all' | 'correct' | 'wrong' | 'unattempted'>('all')
   const [loading, setLoading] = useState(true)
+  const [sharing, setSharing] = useState(false)
 
   useEffect(() => {
     fetch(`/api/results/${id}`).then(r => {
@@ -42,6 +143,40 @@ export default function ResultsPage() {
   const pct = Math.round(attempt.percentage ?? 0)
   const grade = pct >= 80 ? '🏆 उत्कृष्ट' : pct >= 60 ? '👍 अच्छा' : pct >= 40 ? '📚 सामान्य' : '💪 और मेहनत करें'
   const gradeColor = pct >= 80 ? 'text-green-700' : pct >= 60 ? 'text-blue-700' : pct >= 40 ? 'text-amber-700' : 'text-red-700'
+
+  async function shareCard() {
+    setSharing(true)
+    try {
+      const canvas = buildScoreCardCanvas({
+        testName: attempt.test.titleHi,
+        score: attempt.score,
+        totalMarks: attempt.test.totalMarks,
+        percentage: pct,
+        grade,
+        correct: stats.totalCorrect,
+        wrong: stats.totalWrong,
+        skipped: stats.totalUnattempted,
+        accuracy: stats.accuracy,
+        host: window.location.host,
+      })
+
+      const blob = await new Promise<Blob>(res => canvas.toBlob(b => res(b!), 'image/png'))
+      const file = new File([blob], 'mp-patwari-score.png', { type: 'image/png' })
+      const shareText = `MP Patwari 2026 Mock Test में मेरा Score: ${pct}% (${attempt.score}/${attempt.test.totalMarks})\nक्या आप मुझे हरा सकते हैं? 👇\n${window.location.origin}`
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'MP Patwari Score Card', text: shareText })
+      } else {
+        // Desktop fallback: download
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url; a.download = 'mp-patwari-score.png'; a.click()
+        URL.revokeObjectURL(url)
+      }
+    } finally {
+      setSharing(false)
+    }
+  }
 
   const getOpt = (q: QAttempt['question'], key: string) => ({ A: q.optionA, B: q.optionB, C: q.optionC, D: q.optionD }[key] ?? '')
 
@@ -95,6 +230,28 @@ export default function ResultsPage() {
             <span>⏱ कुल समय: {formatTime(totalTimeSec)}</span>
             <span>📊 प्रयास: {stats.attempted}/{attempt.test.totalQuestions}</span>
             <span>⚡ औसत: {avgTimeSec}s/प्रश्न</span>
+          </div>
+
+          {/* Share button */}
+          <div className="mt-5 flex justify-center">
+            <button
+              onClick={shareCard}
+              disabled={sharing}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-all active:scale-95"
+              style={{
+                background: sharing ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.18)',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.3)',
+                cursor: sharing ? 'not-allowed' : 'pointer',
+              }}
+              onMouseEnter={e => { if (!sharing) e.currentTarget.style.background = 'rgba(255,255,255,0.28)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = sharing ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.18)' }}
+            >
+              {sharing
+                ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" /> बन रहा है...</>
+                : <>📤 Score Card Share करें</>
+              }
+            </button>
           </div>
         </div>
 
