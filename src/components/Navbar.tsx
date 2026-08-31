@@ -68,6 +68,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-6">
             {navLink('/', 'होम')}
             {navLink('/tests', 'टेस्ट')}
+            {navLink('/question-bank', '📚 प्रश्न बैंक')}
             {navLink('/daily-challenge', '🎯 चैलेंज')}
             {navLink('/current-affairs', '📰 करेंट अफेयर्स')}
             {user && navLink('/dashboard', 'डैशबोर्ड')}
@@ -177,6 +178,7 @@ export default function Navbar() {
             {[
               { href: '/', label: 'होम' },
               { href: '/tests', label: '📋 टेस्ट' },
+              { href: '/question-bank', label: '📚 प्रश्न बैंक' },
               { href: '/daily-challenge', label: '🎯 डेली चैलेंज' },
               { href: '/current-affairs', label: '📰 करेंट अफेयर्स' },
               ...(user ? [{ href: '/dashboard', label: '📊 डैशबोर्ड' }] : []),
