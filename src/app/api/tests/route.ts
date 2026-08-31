@@ -13,10 +13,16 @@ export async function GET() {
       .order('sort_order', { ascending: true })
       .order('created_at', { ascending: false })
 
-    const tests = rows?.map((t: any) => {
+    const TYPE_ORDER: Record<string, number> = { FULL: 0, PREVIOUS_YEAR: 1, SUBJECT: 2, TOPIC: 3, CURRENT_AFFAIRS: 4, PRACTICE: 5 }
+    const tests = (rows?.map((t: any) => {
       const { test_attempts, ...rest } = t
       return { ...mapTest(rest), _count: { attempts: test_attempts?.length ?? 0 } }
-    }) ?? []
+    }) ?? []).sort((a: any, b: any) => {
+      const ta = TYPE_ORDER[a.type] ?? 9
+      const tb = TYPE_ORDER[b.type] ?? 9
+      if (ta !== tb) return ta - tb
+      return (a.order ?? 99) - (b.order ?? 99)
+    })
 
     let userAttempts: Record<string, { completed: boolean; lastId: string }> = {}
     if (session) {
